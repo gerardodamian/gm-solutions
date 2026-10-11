@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Generador de links de referidos — GM Web Solutions</title>
+<style>
+:root{--navy:#0e2748;--gold:#e3b23c;--green:#1f7a3f;--bg:#f3f6fa;--card:#fff;--ink:#14233a;--muted:#51627a;--line:#d5deea;font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#0a1424;--card:#12213a;--ink:#e8eef7;--muted:#9fb0c6;--line:#27395a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);line-height:1.55;padding:24px 16px 60px}
+main{max-width:560px;margin:0 auto}
+h1{font-size:1.6rem;margin:0 0 6px}
+p{color:var(--muted);margin:0 0 20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;display:grid;gap:14px}
+label{font-weight:600;display:grid;gap:6px}
+input{font:inherit;padding:12px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
+button,a.b{font:600 1rem inherit;font-family:inherit;border:0;border-radius:10px;padding:12px 18px;background:var(--green);color:#fff;cursor:pointer;text-decoration:none;text-align:center}
+button.alt,a.b.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+#out{display:none;margin-top:18px}
+#qr{background:#fff;padding:10px;border-radius:12px;width:190px;height:190px;justify-self:center}
+#qr img,#qr canvas{width:100%!important;height:auto!important;display:block}
+textarea{font:inherit;width:100%;min-height:96px;padding:12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+small{color:var(--muted)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Links de referidos</h1>
+  <p>Escribí el nombre de quien va a compartir tu app. Su link y su QR hacen que el mensaje de WhatsApp diga "Recomendado por: nombre".</p>
+  <div class="card">
+    <label>Nombre de quien recomienda
+      <input id="nm" maxlength="40" placeholder="Ej: Juan Pérez" autocomplete="off">
+    </label>
+    <button id="go" type="button">Crear link y QR</button>
+  </div>
+
+  <div id="out" class="card">
+    <label>Link para compartir
+      <input id="lk" readonly>
+    </label>
+    <div class="row">
+      <button id="cp" type="button">Copiar link</button>
+    </div>
+    <div id="qr" aria-label="Código QR del link"></div>
+    <a class="b alt" id="dl" download>Descargar QR</a>
+    <label>Mensaje listo para enviar
+      <textarea id="tx" readonly></textarea>
+    </label>
+    <button class="alt" id="cp2" type="button">Copiar mensaje</button>
+    <small>Cuando alguien abre este link, la página recuerda el nombre en ese celular y lo agrega a cualquier mensaje de contacto.</small>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+(function(){
+  var BASE="https://gerardodamian.github.io/gm-solutions/";
+  var $=function(i){return document.getElementById(i)};
+  var qr=null;
+  function clean(v){return (v||"").replace(/[^\p{L}\p{N} ._-]/gu,"").trim().slice(0,40)}
+  function copy(text,btn){
+    var done=function(){var t=btn.textContent;btn.textContent="¡Copiado!";setTimeout(function(){btn.textContent=t},1400)};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done)}
+    else{var s=document.createElement("textarea");s.value=text;document.body.appendChild(s);s.select();document.execCommand("copy");s.remove();done()}
+  }
+  function make(){
+    var n=clean($("nm").value);
+    if(!n){$("nm").focus();return}
+    var url=BASE+"?ref="+encodeURIComponent(n);
+    $("lk").value=url;
+    $("tx").value="Mirá la app de pedidos de GM Web Solutions para comercios y restaurantes: "+url;
+    $("out").style.display="grid";
+    var box=$("qr");box.innerHTML="";
+    if(window.QRCode){
+      qr=new QRCode(box,{text:url,width:400,height:400,colorDark:"#0e2748",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});
+      setTimeout(function(){var im=box.querySelector("img");if(im&&im.src){$("dl").href=im.src;$("dl").download="qr-"+n.toLowerCase().replace(/\s+/g,"-")+".png"}},150);
+    }
+  }
+  $("go").addEventListener("click",make);
+  $("nm").addEventListener("keydown",function(e){if(e.key==="Enter")make()});
+  $("cp").addEventListener("click",function(){copy($("lk").value,this)});
+  $("cp2").addEventListener("click",function(){copy($("tx").value,this)});
+})();
+</script>
+</body>
+</html>
